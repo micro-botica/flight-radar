@@ -92,7 +92,7 @@ We werken in milestones, die je terugvindt op het [projectbord](https://github.c
 
 ## Makers
 
-Gemaakt door **Maarten** en **Mick** ([@MVelden1](https://github.com/MVelden1)), met hulp van [Claude](https://claude.ai) van Anthropic bij het opzetten, plannen en programmeren.
+Gemaakt door **Maarten** ([@Remotev2](https://github.com/Remotev2)) en **Mick** ([@MVelden1](https://github.com/MVelden1)), met hulp van [Claude](https://claude.ai) van Anthropic bij het opzetten, plannen en programmeren.
 
 Geïnspireerd door het [ESP32 Plane Radar](https://makerworld.com/nl/models/2872376-esp32-plane-radar-live-ads-b-on-a-round-display)-project op MakerWorld.
 
