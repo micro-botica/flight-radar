@@ -1,0 +1,66 @@
+name: Claude
+
+# Mention @claude in an issue, a PR comment or a PR review to let Claude work on it.
+# Usage is billed to the Claude subscription of whoever wrote the comment:
+#   MVelden1  -> secret CLAUDE_TOKEN_MICK
+#   Remotev2  -> secret CLAUDE_TOKEN_MAARTEN
+# Anyone else is ignored.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, assigned]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+  actions: read
+
+jobs:
+  claude:
+    if: >-
+      (github.actor == 'MVelden1' || github.actor == 'Remotev2') &&
+      (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+        (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      )
+    runs-on: ubuntu-latest
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
+    env:
+      PERSON: ${{ github.actor == 'Remotev2' && 'MAARTEN' || 'MICK' }}
+      GIT_NAME: ${{ github.actor }}
+      GIT_ID: ${{ github.actor == 'Remotev2' && '68644750' || '150436912' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check that a token exists for this person
+        env:
+          TOKEN: ${{ secrets[format('CLAUDE_TOKEN_{0}', github.actor == 'Remotev2' && 'MAARTEN' || 'MICK')] }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::Secret CLAUDE_TOKEN_${PERSON} is missing. ${GIT_NAME} has to add their own token first (see CLAUDE.md)."
+            exit 1
+          fi
+          echo "Running on the Claude subscription of ${GIT_NAME}."
+
+      - name: Run Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets[format('CLAUDE_TOKEN_{0}', github.actor == 'Remotev2' && 'MAARTEN' || 'MICK')] }}
+          bot_name: ${{ env.GIT_NAME }}
+          bot_id: ${{ env.GIT_ID }}
+          settings: '{"includeCoAuthoredBy": false}'
