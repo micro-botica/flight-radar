@@ -64,3 +64,5 @@ jobs:
           bot_name: ${{ env.GIT_NAME }}
           bot_id: ${{ env.GIT_ID }}
           settings: '{"includeCoAuthoredBy": false}'
+          claude_args: |
+            --allowedTools "Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh issue view:*)"
