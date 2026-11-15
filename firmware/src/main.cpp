@@ -1,4 +1,27 @@
 #include <Arduino.h>
+#include <lvgl.h>
+
+#include "ui/display.h"
+
+// Temporary hello screen for the display bring-up: a circle with a text.
+static void showHelloScreen() {
+  lv_obj_t* screen = lv_scr_act();
+  lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
+
+  lv_obj_t* circle = lv_obj_create(screen);
+  lv_obj_set_size(circle, 360, 360);
+  lv_obj_center(circle);
+  lv_obj_set_style_radius(circle, LV_RADIUS_CIRCLE, 0);
+  lv_obj_set_style_bg_opa(circle, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_color(circle, lv_color_hex(0x00FF66), 0);
+  lv_obj_set_style_border_width(circle, 4, 0);
+
+  lv_obj_t* label = lv_label_create(screen);
+  lv_label_set_text(label, "Flight Radar");
+  lv_obj_set_style_text_color(label, lv_color_hex(0x00FF66), 0);
+  lv_obj_set_style_text_font(label, &lv_font_montserrat_28, 0);
+  lv_obj_center(label);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -14,9 +37,18 @@ void setup() {
   } else {
     Serial.println("PSRAM: not found");
   }
+
+  if (!displayInit()) {
+    Serial.println("Display init failed");
+    return;
+  }
+  showHelloScreen();
+  lv_timer_handler();  // Draw the first frame before the backlight comes on.
+  displaySetBacklight(100);
+  Serial.println("Display ready");
 }
 
 void loop() {
-  Serial.printf("alive, uptime %lu s\n", millis() / 1000);
-  delay(5000);
+  displayUpdate();
+  delay(5);
 }
