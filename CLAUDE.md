@@ -7,6 +7,8 @@ This repository is the Flight Radar project by Maarten (@Remotev2) and Mick (@MV
 - Never add `Co-Authored-By` trailers or any other Claude attribution to commits or pull requests. Commits must be authored by the person who asked.
 - Never push directly to `main`. Work on a branch and open a pull request.
 - Link pull requests to their issue with `Closes #nr` in the description.
+- When you have changed files for an issue, open the pull request yourself with `gh pr create` (not as a draft): an English title, a short summary of what changed and `Closes #nr`. First check with `gh pr list` whether a PR for that issue already exists; if so, push to its branch instead of opening a new one.
+- Do not push a branch or open a pull request when nothing changed.
 - Never commit secrets. Wi-Fi credentials and API keys only go in `firmware/include/secrets.h`, which is ignored by Git.
 - Only use the hardware that is on the board itself. No extra sensors or modules.
 - Write code, comments, commit messages and documentation in English.
