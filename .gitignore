@@ -1,0 +1,19 @@
+# PlatformIO build output
+.pio/
+firmware/.pio/
+
+# VS Code: ignore everything except shared settings
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# CLion
+.idea/
+cmake-build-*/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets (development only, copy from secrets.example.h)
+firmware/include/secrets.h
