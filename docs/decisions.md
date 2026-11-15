@@ -34,3 +34,30 @@ The radar needs live aircraft positions around the device. We refresh every 5 to
 ### To verify
 
 The official pages of airplanes.live and adsb.lol could not be fully fetched during the comparison. Check their current terms of use on the official sites before relying on this decision.
+
+## 2. Ownership per side
+
+Status: accepted (issue #3)
+
+### Context
+
+The work splits into a data side and a UI side. We want clear boundaries so we do not get in each other's way, but Maarten and Mick both work on both sides, depending on who has time.
+
+### Decision
+
+1. **No fixed owner per person.** Either of us can take either side.
+2. **Claim by assigning.** Whoever starts an issue assigns it to themselves first. An assigned issue is owned by that person until it is merged or released again.
+3. **The boundary is the `Aircraft` list.** The data side produces it, the UI side draws it. Changes to the `Aircraft` struct are agreed in the issue or pull request before they are merged.
+
+### Sides for milestones 1 and 2
+
+| Side | Topics | Issues |
+|---|---|---|
+| Data | Wi-Fi, time (NTP/RTC), ADS-B fetch, JSON parsing, fake data source, error handling, location and postcode, captive portal | #10, #11, #12, #13, #14, #24, #30, #69, #70, #71 |
+| UI | Display with LVGL, touch (CST820), UI theme | #6, #7, #76 |
+| Shared | PlatformIO project and CI, then shared | #5, #8 |
+
+### Consequences
+
+- Nobody waits for the other to be free. Pick an unassigned issue and assign yourself.
+- Assigning the issues of milestones 1 and 2 happens in GitHub, one by one, when someone picks them up.
