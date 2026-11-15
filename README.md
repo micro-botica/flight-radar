@@ -85,6 +85,8 @@ We work in milestones, which you can find on the [project board](https://github.
 
 ## Contributing
 
+The full working agreements are in [CONTRIBUTING.md](CONTRIBUTING.md). In short:
+
 - Every change goes through its own branch and a pull request to `main`.
 - Link your PR to an issue with `Closes #nr` in the description, so the issue moves along the board automatically.
 - The other person reviews the PR before it is merged.
