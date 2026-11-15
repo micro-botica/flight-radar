@@ -16,6 +16,13 @@ constexpr int kPinI2cScl = 7;
 constexpr uint8_t kExpanderAddress = 0x20;
 constexpr int8_t kExpanderLcdReset = 0;  // EXIO1
 constexpr int8_t kExpanderLcdCs = 2;     // EXIO3
+constexpr int8_t kExpanderTouchReset = 1;  // EXIO2
+constexpr uint8_t kExpanderRegOutput = 0x01;
+constexpr uint8_t kExpanderRegConfig = 0x03;
+
+// CST820 capacitive touch controller.
+constexpr uint8_t kTouchAddress = 0x15;
+constexpr uint8_t kTouchRegFingerCount = 0x02;  // Followed by X and Y.
 
 // The ST7701S is configured over a 3-wire SPI bus, bit-banged through the
 // expander. The pixel data itself goes over the parallel RGB bus below.
@@ -143,6 +150,63 @@ Arduino_RGB_Display* gfx = nullptr;
 
 lv_disp_draw_buf_t drawBuf;
 lv_disp_drv_t dispDrv;
+lv_indev_drv_t indevDrv;
+
+// Reads one TCA9554 register, returns false on an I2C error.
+bool expanderRead(uint8_t reg, uint8_t* value) {
+  Wire.beginTransmission(kExpanderAddress);
+  Wire.write(reg);
+  if (Wire.endTransmission() != 0) return false;
+  if (Wire.requestFrom(kExpanderAddress, static_cast<uint8_t>(1)) != 1) {
+    return false;
+  }
+  *value = Wire.read();
+  return true;
+}
+
+bool expanderWrite(uint8_t reg, uint8_t value) {
+  Wire.beginTransmission(kExpanderAddress);
+  Wire.write(reg);
+  Wire.write(value);
+  return Wire.endTransmission() == 0;
+}
+
+// Pulses the touch controller reset line, which hangs off the expander.
+// Read-modify-write so the LCD reset and chip select bits stay untouched.
+bool resetTouchController() {
+  uint8_t config = 0;
+  uint8_t output = 0;
+  if (!expanderRead(kExpanderRegConfig, &config) ||
+      !expanderRead(kExpanderRegOutput, &output)) {
+    return false;
+  }
+  const uint8_t mask = 1u << kExpanderTouchReset;
+  bool ok = expanderWrite(kExpanderRegConfig, config & ~mask);  // Output.
+  ok = expanderWrite(kExpanderRegOutput, output & ~mask) && ok;  // Low.
+  delay(20);
+  ok = expanderWrite(kExpanderRegOutput, output | mask) && ok;  // High.
+  delay(100);
+  return ok;
+}
+
+// LVGL read callback: reports the first touch point, if any.
+void readTouch(lv_indev_drv_t*, lv_indev_data_t* data) {
+  uint8_t raw[5] = {0};
+  Wire.beginTransmission(kTouchAddress);
+  Wire.write(kTouchRegFingerCount);
+  bool ok = Wire.endTransmission() == 0 &&
+            Wire.requestFrom(kTouchAddress, static_cast<uint8_t>(5)) == 5;
+  if (ok) {
+    for (auto& b : raw) b = Wire.read();
+  }
+  if (!ok || raw[0] == 0) {
+    data->state = LV_INDEV_STATE_REL;  // Keeps the last point for release.
+    return;
+  }
+  data->state = LV_INDEV_STATE_PR;
+  data->point.x = ((raw[1] & 0x0F) << 8) | raw[2];
+  data->point.y = ((raw[3] & 0x0F) << 8) | raw[4];
+}
 
 void flushToPanel(lv_disp_drv_t* drv, const lv_area_t* area, lv_color_t* pixels) {
   const uint32_t w = area->x2 - area->x1 + 1;
@@ -210,6 +274,14 @@ bool displayInit() {
   dispDrv.flush_cb = flushToPanel;
   dispDrv.draw_buf = &drawBuf;
   lv_disp_drv_register(&dispDrv);
+
+  if (!resetTouchController()) {
+    Serial.println("Display: touch reset failed, touch may not work");
+  }
+  lv_indev_drv_init(&indevDrv);
+  indevDrv.type = LV_INDEV_TYPE_POINTER;
+  indevDrv.read_cb = readTouch;
+  lv_indev_drv_register(&indevDrv);
 
   return true;
 }
