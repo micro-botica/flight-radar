@@ -21,6 +21,16 @@ static void showHelloScreen() {
   lv_obj_set_style_text_color(label, lv_color_hex(0x00FF66), 0);
   lv_obj_set_style_text_font(label, &lv_font_montserrat_28, 0);
   lv_obj_center(label);
+
+  // Test button for the touch bring-up: it turns green while pressed.
+  lv_obj_t* button = lv_btn_create(screen);
+  lv_obj_set_size(button, 160, 60);
+  lv_obj_align(button, LV_ALIGN_CENTER, 0, 90);
+  lv_obj_set_style_bg_color(button, lv_color_hex(0x333333), 0);
+  lv_obj_set_style_bg_color(button, lv_color_hex(0x00FF66), LV_STATE_PRESSED);
+  lv_obj_t* buttonLabel = lv_label_create(button);
+  lv_label_set_text(buttonLabel, "Touch");
+  lv_obj_center(buttonLabel);
 }
 
 void setup() {
