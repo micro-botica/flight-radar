@@ -55,7 +55,7 @@ flight-radar/
 ├── enclosure/           # 3D print files for the enclosure
 └── docs/
     ├── decisions.md     # why we made which choices
-    └── hardware-verification.md  # checks that need the real board
+    └── system-testing.md # open checks that need the board, and how to run them
 ```
 
 This structure will be set up during milestone 1.
