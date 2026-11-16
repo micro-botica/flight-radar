@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include "data/profile_store.h"
 #include "data/wifi_manager.h"
 #include "ui/display.h"
 
@@ -35,6 +36,7 @@ static void showHelloScreen() {
 }
 
 static WifiManager wifi;
+static ProfileStore profiles;
 
 void setup() {
   Serial.begin(115200);
@@ -51,8 +53,16 @@ void setup() {
     Serial.println("PSRAM: not found");
   }
 
-  // Known networks will come from the location profiles; until then
+  // Known networks come from the location profiles. With no profiles,
   // begin() falls back to secrets.h.
+  profiles.begin();
+  profiles.onChange([](int index, const Profile& p) {
+    // The radar, clock and weather will subscribe here to jump to the new
+    // location (name, coordinates and range).
+    Serial.printf("Profile: switched to %d (%s), range %u km\n", index,
+                  p.name.c_str(), p.rangeKm);
+  });
+  wifi.setNetworks(profiles.networks());
   wifi.begin();
 
   if (!displayInit()) {
@@ -67,6 +77,8 @@ void setup() {
 
 void loop() {
   wifi.update();
+  // The active profile follows the connected network.
+  profiles.onWifiChanged(wifi.isConnected() ? wifi.status().ssid : String());
   displayUpdate();
   static uint32_t lastLog = 0;
   if (millis() - lastLog >= 5000) {
