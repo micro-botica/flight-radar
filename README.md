@@ -54,7 +54,9 @@ flight-radar/
 ├── simulator/           # LVGL on the PC with mock data
 ├── enclosure/           # 3D print files for the enclosure
 └── docs/
-    └── decisions.md     # why we made which choices
+    ├── decisions.md     # why we made which choices
+    ├── system-testing.md # open checks that need the board, and how to run them
+    └── github-templates/ # files for .github/ to copy in by hand
 ```
 
 This structure will be set up during milestone 1.
