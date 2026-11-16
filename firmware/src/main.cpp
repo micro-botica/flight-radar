@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include "data/arduino_wifi_driver.h"
 #include "data/wifi_manager.h"
 #include "ui/display.h"
 
@@ -34,7 +35,9 @@ static void showHelloScreen() {
   lv_obj_center(buttonLabel);
 }
 
-static WifiManager wifi;
+static ArduinoWifiDriver wifiDriver;
+static ArduinoWifiClock wifiClock;
+static WifiManager wifi(wifiDriver, wifiClock);
 
 void setup() {
   Serial.begin(115200);
