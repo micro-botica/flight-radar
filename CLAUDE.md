@@ -37,4 +37,4 @@ Claude has no memory between runs. Only what is in the repository or in an issue
 4. State in the pull request description what was and was not verified, and which issue covers the rest.
 5. When a check is verified later, remove it from the document and tick or close the issue.
 6. Every new feature gets an entry in `docs/system-testing.md` in the same pull request.
-7. Claude cannot change `.github/workflows`. Put files that belong under `.github/` in `docs/github-templates/` and give the user the command to copy them into place.
+7. Claude cannot change `.github/workflows`. If a change there is needed, put the full file content in the pull request description and say where it must go, so the user can apply it by hand.
