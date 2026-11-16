@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include "data/wifi_manager.h"
 #include "ui/display.h"
 
 // Temporary hello screen for the display bring-up: a circle with a text.
@@ -33,6 +34,8 @@ static void showHelloScreen() {
   lv_obj_center(buttonLabel);
 }
 
+static WifiManager wifi;
+
 void setup() {
   Serial.begin(115200);
   // Give the USB CDC serial port time to enumerate before the first message.
@@ -48,6 +51,10 @@ void setup() {
     Serial.println("PSRAM: not found");
   }
 
+  // Known networks will come from the location profiles; until then
+  // begin() falls back to secrets.h.
+  wifi.begin();
+
   if (!displayInit()) {
     Serial.println("Display init failed");
     return;
@@ -59,6 +66,13 @@ void setup() {
 }
 
 void loop() {
+  wifi.update();
   displayUpdate();
+  static uint32_t lastLog = 0;
+  if (millis() - lastLog >= 5000) {
+    lastLog = millis();
+    Serial.printf("alive, uptime %lu s, wifi %d\n", millis() / 1000,
+                  (int)wifi.status().state);
+  }
   delay(5);
 }
