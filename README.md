@@ -48,13 +48,14 @@ flight-radar/
 ├── firmware/            # PlatformIO project for the board
 │   ├── src/
 │   │   ├── data/        # Wi-Fi, API clients, parsing
-│   │   ├── ui/          # LVGL screens, radar, touch
+│   │   ├── ui/          # LVGL screens, radar, touch, theme.h and fonts/
 │   │   └── model/       # Aircraft model and geo calculations
 │   └── include/         # e.g. secrets.example.h
 ├── simulator/           # LVGL on the PC with mock data
 ├── enclosure/           # 3D print files for the enclosure
 └── docs/
     ├── decisions.md     # why we made which choices
+    ├── design/          # style guide (colors, fonts, sizes)
     └── system-testing.md # open checks that need the board, and how to run them
 ```
 
