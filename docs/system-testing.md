@@ -30,6 +30,18 @@ Logic is covered by mock tests (#94). The checks below need a real radio and rou
 | Build without `secrets.h` | Remove `include/secrets.h` and build | Build succeeds and the firmware runs |
 | `WifiManager::status()` | Print `status()` to serial in each situation above | State, SSID, RSSI and reconnect count match reality |
 
+## Location profiles (issue #69)
+
+Not built or run yet. Needs the board and `pio run`.
+
+| Check | How | Expected |
+|---|---|---|
+| Build | Run `pio run` | Build succeeds with `profile_store` and `profile.h` |
+| Persistence | Save two profiles, reset the board | Both profiles are loaded from NVS with all fields |
+| Follows Wi-Fi | Connect to the network of profile B while A is active | Serial shows `Profile: switched to ... (B)` |
+| Manual switch | Call `setActive()` on another profile | Change callback fires once. It stays until the Wi-Fi network changes. |
+| No profiles | Erase NVS and boot | `secrets.h` fallback connects, no crash |
+
 ## UI theme and fonts (issue #76, style guide version 2)
 
 The theme and fonts compile on a PC against LVGL 8.4 with the project's `lv_conf.h`, but they have not been built with `pio run` or shown on the board. Open checks are tracked in #102.
