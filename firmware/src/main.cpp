@@ -1,13 +1,21 @@
 #include <Arduino.h>
+#include <Preferences.h>
 #include <lvgl.h>
+
+#if __has_include("secrets.h")
+#include "secrets.h"
+#endif
 
 #include "data/arduino_wifi_driver.h"
 #include "data/wifi_manager.h"
+#include "setup/setup_portal.h"
 #include "ui/display.h"
+#include "ui/setup_screen.h"
 
 // Temporary hello screen for the display bring-up: a circle with a text.
 static void showHelloScreen() {
   lv_obj_t* screen = lv_scr_act();
+  lv_obj_clean(screen);
   lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
   lv_obj_t* circle = lv_obj_create(screen);
@@ -39,6 +47,40 @@ static ArduinoWifiDriver wifiDriver;
 static ArduinoWifiClock wifiClock;
 static WifiManager wifi(wifiDriver, wifiClock);
 
+static SetupPortal setupPortal;
+static bool showSetup = false;
+
+// Setup result storage. Temporary: issue #69 (location profiles in NVS)
+// replaces this with proper profiles.
+static const char* kPrefsNamespace = "setup";
+
+static void startWifiWith(const SetupResult& r) {
+  wifi.setNetworks({{r.ssid, r.password}});
+  wifi.begin();
+}
+
+static void saveSetup(const SetupResult& r) {
+  Preferences prefs;
+  prefs.begin(kPrefsNamespace, false);
+  prefs.putString("ssid", r.ssid.c_str());
+  prefs.putString("pass", r.password.c_str());
+  prefs.putString("zip", r.postcode.c_str());
+  prefs.putString("name", r.profileName.c_str());
+  prefs.end();
+}
+
+// Returns true when a saved setup was found.
+static bool loadSetup(SetupResult& r) {
+  Preferences prefs;
+  prefs.begin(kPrefsNamespace, true);
+  r.ssid = prefs.getString("ssid", "").c_str();
+  r.password = prefs.getString("pass", "").c_str();
+  r.postcode = prefs.getString("zip", "").c_str();
+  r.profileName = prefs.getString("name", "").c_str();
+  prefs.end();
+  return !r.ssid.empty();
+}
+
 void setup() {
   Serial.begin(115200);
   // Give the USB CDC serial port time to enumerate before the first message.
@@ -54,15 +96,37 @@ void setup() {
     Serial.println("PSRAM: not found");
   }
 
-  // Known networks will come from the location profiles; until then
-  // begin() falls back to secrets.h.
-  wifi.begin();
+  // Known networks will come from the location profiles; until then they
+  // come from the first-time setup, or from secrets.h for development.
+  SetupResult saved;
+  bool haveNetwork = loadSetup(saved);
+#if defined(WIFI_SSID)
+  bool hasFallback = true;
+#else
+  bool hasFallback = false;
+#endif
+  if (haveNetwork) {
+    startWifiWith(saved);
+  } else if (hasFallback) {
+    wifi.begin();
+  } else {
+    showSetup = true;  // no known Wi-Fi: first-time setup via phone
+  }
 
   if (!displayInit()) {
     Serial.println("Display init failed");
     return;
   }
-  showHelloScreen();
+  if (showSetup) {
+    setupPortal.begin([](const SetupResult& r) {
+      saveSetup(r);
+      startWifiWith(r);
+      showHelloScreen();  // replaced by the radar screen later
+    });
+    showSetupScreen(setupPortal.apName());
+  } else {
+    showHelloScreen();
+  }
   lv_timer_handler();  // Draw the first frame before the backlight comes on.
   displaySetBacklight(100);
   Serial.println("Display ready");
@@ -70,6 +134,7 @@ void setup() {
 
 void loop() {
   wifi.update();
+  setupPortal.update();
   displayUpdate();
   static uint32_t lastLog = 0;
   if (millis() - lastLog >= 5000) {

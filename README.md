@@ -66,7 +66,7 @@ Build and flash instructions will follow once the PlatformIO project is in place
 
 1. Install [VS Code](https://code.visualstudio.com/) with the PlatformIO extension.
 2. Clone this repository.
-3. Copy `firmware/include/secrets.example.h` to `firmware/include/secrets.h` (for example `cp firmware/include/secrets.example.h firmware/include/secrets.h`) and fill in your Wi-Fi details. `secrets.h` is ignored by Git and is only meant for development; end users use the settings page.
+3. Copy `firmware/include/secrets.example.h` to `firmware/include/secrets.h` (for example `cp firmware/include/secrets.example.h firmware/include/secrets.h`) and fill in your Wi-Fi details. `secrets.h` is ignored by Git and is only meant for development; end users set up the display with their phone: without a known Wi-Fi network the display starts an access point `Radar-XXXX` and shows a QR code. Scan it, pick your Wi-Fi network and enter your postcode on the page that opens.
 4. Connect the board over USB-C and click **Upload** in PlatformIO.
 
 ## Roadmap

@@ -2,6 +2,8 @@
 #include <stdio.h>
 
 #include "../src/data/wifi_manager.h"
+#include "../src/setup/portal_core.h"
+#include "../src/setup/portal_pages.h"
 
 static int failures = 0;
 #define CHECK(cond)                                                  \
@@ -236,6 +238,51 @@ static void testStatusBeforeBeginAndRssi() {
   CHECK(f.wifi.status().rssi == -63);
 }
 
+static void testPortalApName() {
+  const uint8_t mac[6] = {0x10, 0x20, 0x30, 0x40, 0xAB, 0x0F};
+  CHECK(portal::apName(mac) == "Radar-AB0F");
+}
+
+static void testPortalQrPayload() {
+  CHECK(portal::wifiQrPayload("Radar-AB0F") == "WIFI:T:nopass;S:Radar-AB0F;;");
+  CHECK(portal::escapeWifiField("a;b:c") == "a\\;b\\:c");
+}
+
+static void testPortalCleanScan() {
+  std::vector<PortalNetwork> raw = {
+      {"Home", -70}, {"", -40}, {"Cafe", -50}, {"Home", -60}};
+  auto out = portal::cleanScan(raw);
+  CHECK(out.size() == 2);
+  CHECK(out[0].ssid == "Cafe");
+  CHECK(out[1].ssid == "Home" && out[1].rssi == -60);
+  CHECK(portal::signalBars(-50) == 4 && portal::signalBars(-90) == 0);
+}
+
+static void testPortalPostcode() {
+  CHECK(portal::normalizePostcode("1234ab") == "1234 AB");
+  CHECK(portal::normalizePostcode(" 1234 AB ") == "1234 AB");
+  CHECK(portal::normalizePostcode("0123 AB").empty());
+  CHECK(portal::normalizePostcode("12345").empty());
+  CHECK(portal::normalizePostcode("1234 A1").empty());
+}
+
+static void testPortalValidate() {
+  SetupResult out;
+  CHECK(portal::validate({"Net", "password1", "1234ab", ""}, out).empty());
+  CHECK(out.postcode == "1234 AB" && out.profileName == "Home");
+  CHECK(portal::validate({"", "", "1234 AB", "x"}, out) != "");
+  CHECK(portal::validate({"Net", "short", "1234 AB", "x"}, out) != "");
+  CHECK(portal::validate({"Net", "", "1234 AB", "x"}, out).empty());  // open
+  CHECK(portal::validate({"Net", "", "nope", "x"}, out) != "");
+}
+
+static void testPortalPageEscapes() {
+  std::string page = portal::setupPage({{"<b>\"x", -50}}, "");
+  CHECK(page.find("<b>\"x") == std::string::npos);
+  CHECK(page.find("&lt;b&gt;&quot;x") != std::string::npos);
+  CHECK(portal::donePage("A&B").find("A&amp;B") != std::string::npos);
+}
+
 int main() {
   testConnectsToStrongestKnown();
   testWaitsForScan();
@@ -246,6 +293,12 @@ int main() {
   testFallbackToSecrets();
   testConfiguredNetworksBeatFallback();
   testStatusBeforeBeginAndRssi();
+  testPortalApName();
+  testPortalQrPayload();
+  testPortalCleanScan();
+  testPortalPostcode();
+  testPortalValidate();
+  testPortalPageEscapes();
   if (failures) {
     printf("%d check(s) failed\n", failures);
     return 1;
