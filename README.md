@@ -4,6 +4,23 @@ A live aircraft radar on a round 2.1 inch touchscreen. Over Wi-Fi the display fe
 
 > **Status:** work in progress. We are in the kick-off phase; there is no working firmware yet.
 
+## Screens
+
+<p align="center">
+  <img src="docs/design/schermen/radar.gif" width="320" alt="Radar screen with rotating sweep and aircraft">
+</p>
+
+<table>
+<tr>
+<td align="center"><img src="docs/design/schermen/radar-3.png" width="220" alt="Radar"><br>Radar</td>
+<td align="center"><img src="docs/design/schermen/klok.png" width="220" alt="Clock"><br>Clock</td>
+<td align="center"><img src="docs/design/schermen/weer.png" width="220" alt="Weather"><br>Weather</td>
+</tr>
+</table>
+
+These are designs; the firmware is still in development.
+All screens are in [docs/design/schermen](docs/design/schermen/README.md).
+
 ## Features
 
 Planned for the first version:
@@ -48,14 +65,15 @@ flight-radar/
 ├── firmware/            # PlatformIO project for the board
 │   ├── src/
 │   │   ├── data/        # Wi-Fi, API clients, parsing
-│   │   ├── ui/          # LVGL screens, radar, touch
+│   │   ├── ui/          # LVGL screens, radar, touch, theme.h and fonts/
 │   │   └── model/       # Aircraft model and geo calculations
 │   └── include/         # e.g. secrets.example.h
 ├── simulator/           # LVGL on the PC with mock data
 ├── enclosure/           # 3D print files for the enclosure
 └── docs/
     ├── decisions.md     # why we made which choices
-    └── hardware-verification.md  # checks that need the real board
+    ├── design/          # style guide (colors, fonts, sizes)
+    └── system-testing.md # open checks that need the board, and how to run them
 ```
 
 This structure will be set up during milestone 1.

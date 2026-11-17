@@ -61,3 +61,35 @@ The work splits into a data side and a UI side. We want clear boundaries so we d
 
 - Nobody waits for the other to be free. Pick an unassigned issue and assign yourself.
 - Assigning the issues of milestones 1 and 2 happens in GitHub, one by one, when someone picks them up.
+
+## 3. UI theme and layout rules
+
+Status: accepted (issue #76), updated for style guide version 2
+
+### Context
+
+All screens must look the same. The values come from `docs/design/stijlgids.md`, now version 2. Version 2 makes the radar smaller, raises the smallest text to 15 px and uses whole pixel line widths, so the design matches what LVGL can draw.
+
+### Decision
+
+1. **One place for the theme.** Colors, fonts and sizes are constants in `firmware/src/ui/theme.h`. Screens use these constants and never hard-code a color, font or size.
+2. **Fonts.** Inter (500, 600) and Space Grotesk (500, 600) from Google Fonts (SIL Open Font License), converted to LVGL fonts in `firmware/src/ui/fonts/`. Only the sizes in the font table of the style guide are included:
+   - Space Grotesk 600: 116, 96, 46, 26, 22, 20, 18
+   - Space Grotesk 500: 20
+   - Inter 600: 20, 18, 16, 15
+   - Inter 500: 21 (only the date on the clock)
+3. **Large fonts are digits only.** The 116 px and 96 px fonts only contain `0-9`, `:`, `°` and `-`.
+4. **Smallest text is 15 px, and small text is Inter 600.** Sizes in the design that are not in the table (28, 24, 21, 19, 17) use the nearest size from the table.
+5. **Radar size.** The radar stays within a radius of 180 px from the center (240, 240). Rings at 45, 90, 135 and 180 px, which is 4.5 px per km at the 40 km range.
+6. **Edge band.** The band between 180 and 240 px is only for the N indicator (top), aircraft count (top left), time (top right) and the page dots (bottom). Keep at least 10 px from the round edge.
+7. **Whole pixel lines.** Inner rings 1 px, outer ring and sweep line 2 px. All rings use Line strong (`#2E3B4A`).
+8. **At most 4 callsigns on the radar**, for the 4 nearest aircraft (3 in night mode). A label that touches another label or icon is hidden.
+9. **No dashed arcs.** LVGL cannot draw a dashed arc, so the design uses solid lines only.
+10. **Touch targets.** At least 48 x 48 px. On the radar, a tap that hits several aircraft selects the nearest one.
+
+### Consequences
+
+- A change to a color or size is made once in `theme.h`.
+- Adding a font size means regenerating it and declaring it in `theme.h`.
+- Version 1 fonts that are no longer used (Space Grotesk 500 17, Inter 600 13, Inter 500 15 and 13) are removed.
+- The sweep fan refreshes a large part of the screen. The expected rate of about 10 frames per second has not been measured yet.

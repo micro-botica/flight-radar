@@ -26,3 +26,15 @@ Each of us adds our own token once:
 4. Name: `CLAUDE_TOKEN_MICK` (Mick) or `CLAUDE_TOKEN_MAARTEN` (Maarten). Paste the token and save.
 
 Secrets are write-only, so neither of us can see the other's token.
+
+## Unverified work and documentation
+
+Claude has no memory between runs. Only what is in the repository or in an issue exists for the next run, so follow these rules whenever something could not be checked (no `pio run`, no board, no radio, no display):
+
+1. Document the open check in `docs/system-testing.md`: what to test, how to test it, the expected result and the issue it belongs to.
+2. Run `gh issue list` first. If no issue covers the open check, create one with the label and milestone of the source issue. Never create duplicates.
+3. Update the related documentation (`README.md`, `docs/`) in the same pull request, so code and docs merge together.
+4. State in the pull request description what was and was not verified, and which issue covers the rest.
+5. When a check is verified later, remove it from the document and tick or close the issue.
+6. Every new feature gets an entry in `docs/system-testing.md` in the same pull request.
+7. Claude cannot change `.github/workflows`. If a change there is needed, put the full file content in the pull request description and say where it must go, so the user can apply it by hand.

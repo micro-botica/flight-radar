@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#include "data/arduino_wifi_driver.h"
 #include "data/profile_store.h"
 #include "data/wifi_manager.h"
 #include "ui/display.h"
@@ -35,7 +36,9 @@ static void showHelloScreen() {
   lv_obj_center(buttonLabel);
 }
 
-static WifiManager wifi;
+static ArduinoWifiDriver wifiDriver;
+static ArduinoWifiClock wifiClock;
+static WifiManager wifi(wifiDriver, wifiClock);
 static ProfileStore profiles;
 
 void setup() {
@@ -78,7 +81,7 @@ void setup() {
 void loop() {
   wifi.update();
   // The active profile follows the connected network.
-  profiles.onWifiChanged(wifi.isConnected() ? wifi.status().ssid : String());
+  profiles.onWifiChanged(wifi.isConnected() ? String(wifi.status().ssid.c_str()) : String());
   displayUpdate();
   static uint32_t lastLog = 0;
   if (millis() - lastLog >= 5000) {

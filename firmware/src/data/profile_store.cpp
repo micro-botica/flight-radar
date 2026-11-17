@@ -126,7 +126,7 @@ void ProfileStore::onWifiChanged(const String& connectedSsid) {
 std::vector<WifiNetwork> ProfileStore::networks() const {
   std::vector<WifiNetwork> list;
   for (const auto& p : profiles_) {
-    if (p.ssid.length() > 0) list.push_back({p.ssid, p.password});
+    if (p.ssid.length() > 0) list.push_back({p.ssid.c_str(), p.password.c_str()});
   }
   return list;
 }
