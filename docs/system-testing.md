@@ -30,16 +30,17 @@ Logic is covered by mock tests (#94). The checks below need a real radio and rou
 | Build without `secrets.h` | Remove `include/secrets.h` and build | Build succeeds and the firmware runs |
 | `WifiManager::status()` | Print `status()` to serial in each situation above | State, SSID, RSSI and reconnect count match reality |
 
-## UI theme and fonts (issue #76)
+## UI theme and fonts (issue #76, style guide version 2)
 
-The theme compiles on a PC against LVGL 8.4, but it has not been built with `pio run` or shown on the board. Open checks are tracked in #102.
+The theme and fonts compile on a PC against LVGL 8.4 with the project's `lv_conf.h`, but they have not been built with `pio run` or shown on the board. Open checks are tracked in #102.
 
 | Check | How | Expected |
 |---|---|---|
 | Firmware builds with the fonts | `cd firmware && pio run` | Build succeeds, flash size stays well below 16 MB |
-| Fonts render | Show a test label per font in `theme.h` (for example "Aa 0123 12:34 18°") | Glyphs are sharp and complete. The clock and temperature fonts show `0-9 : ° -`. |
+| Fonts render | Show a test label per font in `theme.h` (for example "Aa 0123 12:34 18°") | Glyphs are sharp and complete. The clock and temperature fonts show `0-9 : ° -` and nothing else. |
+| Smallest text is readable | Show ring labels and help text in `kFontSmall` (Inter 600 15 px) at arm's length | Readable without effort |
 | Colors match the style guide | Fill test squares with the day colors and compare with the style guide on the display | Colors look the same as in the design |
-| Content radius | Draw a circle of radius 200 px around (240, 240) | Nothing except N, count, time and page dots is outside it |
+| Radar radius | Draw the four rings from `kRingRadius` around (240, 240) | Outer ring at 180 px, inner rings 1 px and outer ring 2 px, all in Line strong |
 
 ## Display and touch
 
