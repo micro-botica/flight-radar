@@ -54,6 +54,20 @@ The theme and fonts compile on a PC against LVGL 8.4 with the project's `lv_conf
 | Colors match the style guide | Fill test squares with the day colors and compare with the style guide on the display | Colors look the same as in the design |
 | Radar radius | Draw the four rings from `kRingRadius` around (240, 240) | Outer ring at 180 px, inner rings 1 px and outer ring 2 px, all in Line strong |
 
+## Screen navigation (issue #77)
+
+The navigation rules are covered by native tests (`navigation_logic.h`). `ui/navigation.cpp` has not been compiled or run: LVGL and the board were not available. Open checks are tracked in #104.
+
+| Check | How | Expected |
+|---|---|---|
+| Firmware builds | `cd firmware && pio run` | Build succeeds |
+| Horizontal swipe | Swipe left and right on each screen | Radar, clock and weather follow each other with a slide animation. Nothing happens past the first and last screen. |
+| Page dots | Look at the bottom while switching, tap each dot | The active dot is a white pill, the others small grey dots. Tapping a dot jumps to that screen. Touch targets are 48 x 48 px. |
+| Vertical swipe | On the radar swipe up, then down, then down again, then up | Up opens the list, down returns. Down opens settings, up returns. Clock and weather ignore vertical swipes. |
+| Dots hidden | Open the list and settings | No page dots on those screens |
+| Status layer | Call `navShowStatus(true)` from `main.cpp` temporarily | A full-screen layer covers screen and dots, and swipes and dot taps do nothing. `navShowStatus(false)` brings the screen back. |
+| Swipe reliability | Swipe quickly and from different spots | Gestures are recognised reliably and do not trigger on taps |
+
 ## Display and touch
 
 No open checks yet. Add a section when a display or touch issue needs the board.

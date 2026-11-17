@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "../src/data/wifi_manager.h"
+#include "../src/ui/navigation_logic.h"
 
 static int failures = 0;
 #define CHECK(cond)                                                  \
@@ -236,6 +237,28 @@ static void testStatusBeforeBeginAndRssi() {
   CHECK(f.wifi.status().rssi == -63);
 }
 
+// Screen navigation rules (no LVGL needed).
+static void testNavigation() {
+  CHECK(navTarget(Screen::Radar, Swipe::Left) == Screen::Clock);
+  CHECK(navTarget(Screen::Clock, Swipe::Left) == Screen::Weather);
+  CHECK(navTarget(Screen::Weather, Swipe::Left) == Screen::Weather);
+  CHECK(navTarget(Screen::Weather, Swipe::Right) == Screen::Clock);
+  CHECK(navTarget(Screen::Clock, Swipe::Right) == Screen::Radar);
+  CHECK(navTarget(Screen::Radar, Swipe::Right) == Screen::Radar);
+  CHECK(navTarget(Screen::Radar, Swipe::Up) == Screen::List);
+  CHECK(navTarget(Screen::Radar, Swipe::Down) == Screen::Settings);
+  CHECK(navTarget(Screen::Clock, Swipe::Up) == Screen::Clock);
+  CHECK(navTarget(Screen::Weather, Swipe::Down) == Screen::Weather);
+  CHECK(navTarget(Screen::List, Swipe::Down) == Screen::Radar);
+  CHECK(navTarget(Screen::List, Swipe::Left) == Screen::List);
+  CHECK(navTarget(Screen::Settings, Swipe::Up) == Screen::Radar);
+  CHECK(navTarget(Screen::Radar, Swipe::None) == Screen::Radar);
+  CHECK(navPageIndex(Screen::Weather) == 2);
+  CHECK(navPageIndex(Screen::List) == -1);
+  CHECK(navPageScreen(1, Screen::Radar) == Screen::Clock);
+  CHECK(navPageScreen(7, Screen::List) == Screen::List);
+}
+
 int main() {
   testConnectsToStrongestKnown();
   testWaitsForScan();
@@ -246,6 +269,7 @@ int main() {
   testFallbackToSecrets();
   testConfiguredNetworksBeatFallback();
   testStatusBeforeBeginAndRssi();
+  testNavigation();
   if (failures) {
     printf("%d check(s) failed\n", failures);
     return 1;
