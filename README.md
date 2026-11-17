@@ -12,6 +12,7 @@ Planned for the first version:
 - Radar view with range rings, a north indicator and a rotating sweep
 - Aircraft icons pointing in their direction of flight, with callsign
 - Tap an aircraft for details: type, altitude, speed and distance
+- Swipe between radar, clock and weather, with page dots. Swipe up on the radar for the aircraft list, down for settings
 - Clock, automatically synchronised over the internet
 - Current weather for your location
 - Configuration over Wi-Fi without touching the code, plus over-the-air updates
@@ -48,7 +49,7 @@ flight-radar/
 ├── firmware/            # PlatformIO project for the board
 │   ├── src/
 │   │   ├── data/        # Wi-Fi, API clients, parsing
-│   │   ├── ui/          # LVGL screens, radar, touch, theme.h and fonts/
+│   │   ├── ui/          # LVGL screens, navigation, radar, touch, theme.h and fonts/
 │   │   └── model/       # Aircraft model and geo calculations
 │   └── include/         # e.g. secrets.example.h
 ├── simulator/           # LVGL on the PC with mock data
