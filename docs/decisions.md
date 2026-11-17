@@ -61,3 +61,25 @@ The work splits into a data side and a UI side. We want clear boundaries so we d
 
 - Nobody waits for the other to be free. Pick an unassigned issue and assign yourself.
 - Assigning the issues of milestones 1 and 2 happens in GitHub, one by one, when someone picks them up.
+
+## 3. UI theme and layout rules
+
+Status: accepted (issue #76)
+
+### Context
+
+All screens must look the same. The values come from `docs/design/stijlgids.md`.
+
+### Decision
+
+1. **One place for the theme.** Colors, fonts and sizes are constants in `firmware/src/ui/theme.h`. Screens use these constants and never hard-code a color, font or size.
+2. **Fonts.** Inter (500, 600) and Space Grotesk (500, 600) from Google Fonts (SIL Open Font License), converted to LVGL fonts in `firmware/src/ui/fonts/`. Only the sizes that are used are included. The 116 px and 96 px fonts only contain `0-9 : ° -` and a space. See `firmware/src/ui/fonts/README.md` for how to regenerate them.
+3. **Content radius.** All content stays within a radius of 200 px from the center (240, 240).
+4. **Edge band.** The band between 200 and 240 px is only for the N indicator (top), aircraft count (top left), time (top right) and the page dots (bottom).
+5. **Touch targets.** At least 48 x 48 px. On the radar, a tap that hits several aircraft selects the nearest one.
+
+### Consequences
+
+- A change to a color or size is made once in `theme.h`.
+- Adding a font size means regenerating it and declaring it in `theme.h`.
+- Ring lines are 2 px, not the 1.5 px of the style guide, because LVGL line widths are whole pixels.
