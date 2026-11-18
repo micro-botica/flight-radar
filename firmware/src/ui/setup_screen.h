@@ -1,7 +1,9 @@
 #pragma once
 
+#include <lvgl.h>
+
 #include <string>
 
-// Screen shown while the setup portal runs: a QR code to join the access
-// point and the network name as text.
-void showSetupScreen(const std::string& apName);
+// Content for the setup portal: a QR code to join the access point and the
+// network name as text. Draws into parent, normally navStatusLayer().
+void showSetupScreen(lv_obj_t* parent, const std::string& apName);

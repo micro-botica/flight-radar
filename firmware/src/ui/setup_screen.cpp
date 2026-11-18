@@ -4,8 +4,7 @@
 
 #include "../setup/portal_core.h"
 
-void showSetupScreen(const std::string& apName) {
-  lv_obj_t* screen = lv_scr_act();
+void showSetupScreen(lv_obj_t* screen, const std::string& apName) {
   lv_obj_clean(screen);
   lv_obj_set_style_bg_color(screen, lv_color_black(), 0);
 
