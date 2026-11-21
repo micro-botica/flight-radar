@@ -3,6 +3,7 @@
 
 #include "data/arduino_wifi_driver.h"
 #include "data/profile_store.h"
+#include "data/profile_web.h"
 #include "data/wifi_manager.h"
 #include "ui/display.h"
 #include "ui/navigation.h"
@@ -11,6 +12,7 @@ static ArduinoWifiDriver wifiDriver;
 static ArduinoWifiClock wifiClock;
 static WifiManager wifi(wifiDriver, wifiClock);
 static ProfileStore profiles;
+static ProfileWeb profileWeb(profiles);
 
 void setup() {
   Serial.begin(115200);
@@ -37,6 +39,7 @@ void setup() {
                   p.name.c_str(), p.rangeKm);
   });
   wifi.setNetworks(profiles.networks());
+  profileWeb.onProfilesChanged([]() { wifi.setNetworks(profiles.networks()); });
   wifi.begin();
 
   if (!displayInit()) {
@@ -53,6 +56,7 @@ void loop() {
   wifi.update();
   // The active profile follows the connected network.
   profiles.onWifiChanged(wifi.isConnected() ? String(wifi.status().ssid.c_str()) : String());
+  profileWeb.update(wifi.isConnected());
   displayUpdate();
   static uint32_t lastLog = 0;
   if (millis() - lastLog >= 5000) {
