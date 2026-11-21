@@ -7,6 +7,7 @@
 
 #include "data/arduino_wifi_driver.h"
 #include "data/profile_store.h"
+#include "data/profile_web.h"
 #include "data/wifi_manager.h"
 #include "setup/setup_portal.h"
 #include "ui/display.h"
@@ -17,6 +18,7 @@ static ArduinoWifiDriver wifiDriver;
 static ArduinoWifiClock wifiClock;
 static WifiManager wifi(wifiDriver, wifiClock);
 static ProfileStore profiles;
+static ProfileWeb profileWeb(profiles);
 
 static SetupPortal setupPortal;
 static bool showSetup = false;
@@ -63,6 +65,7 @@ void setup() {
   // No profile and no secrets.h fallback: first-time setup via phone.
   showSetup = profiles.profiles().empty();
 #endif
+  profileWeb.onProfilesChanged([]() { wifi.setNetworks(profiles.networks()); });
   if (!showSetup) {
     wifi.setNetworks(profiles.networks());
     wifi.begin();
@@ -88,6 +91,7 @@ void loop() {
   setupPortal.update();
   // The active profile follows the connected network.
   profiles.onWifiChanged(wifi.isConnected() ? String(wifi.status().ssid.c_str()) : String());
+  profileWeb.update(wifi.isConnected());
   displayUpdate();
   static uint32_t lastLog = 0;
   if (millis() - lastLog >= 5000) {

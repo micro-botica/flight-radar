@@ -36,6 +36,10 @@ Planned for the first version:
 
 Ideas for later are listed as optional milestones on the [project board](https://github.com/orgs/micro-botica/projects/1).
 
+## Managing location profiles
+
+Once the radar is on your Wi-Fi, open `http://flightradar.local` on a phone on the same network (or use the IP address from the serial log). There you can add, edit, activate and delete location profiles. The active profile cannot be deleted. The page has no login, so only use it on a network you trust. See `docs/system-testing.md` for what is still to be verified on the board.
+
 ## Hardware
 
 The whole project runs on a single board, with no extra sensors or modules:

@@ -62,6 +62,25 @@ Not built or run yet. Needs the board and `pio run`.
 | Manual switch | Call `setActive()` on another profile | Change callback fires once. It stays until the Wi-Fi network changes. |
 | No profiles | Erase NVS and boot | `secrets.h` fallback connects, no crash |
 
+## Profile web page (issue #78)
+
+Not built or run yet: no `pio run` and no board were available. Needs the board, a Wi-Fi network and a phone. Open checks are tracked in #78 until a separate verify issue exists.
+
+| Check | How | Expected |
+|---|---|---|
+| Build | `cd firmware && pio run` | Build succeeds with `profile_web` (WebServer, ESPmDNS) |
+| Reachable by name | Connect the phone to the same network, open `http://flightradar.local` | Overview of profiles opens. If mDNS fails (some Android versions), the IP from the serial log works. |
+| Overview | Add two profiles | Each card shows name, postcode, range and Wi-Fi name. The active one is marked. |
+| Add | Tap Add profile, fill in, save | Profile appears. A bad postcode, empty name or invalid range shows an error. |
+| Edit | Edit a profile, leave the password empty | Changes are saved and the old password is kept. The password is never shown in the page. |
+| Make active | Tap Make active on another profile | Active badge moves. Serial shows `Profile: switched to ...`. |
+| Delete | Tap Delete on an inactive profile, confirm | Confirmation page first. Profile is gone after confirming. |
+| Active cannot be deleted | Look at the active card, then open `/delete?i=<active index>` by hand | No Delete button. The manual URL redirects with an error and nothing is removed. |
+| New network | Add a profile with the SSID of another network | Wi-Fi manager knows it without a reboot |
+| Persistence | Reset the board | Profiles are still there |
+
+Known gaps: the postcode is not yet turned into coordinates (issue #70), so a new profile has lat/lon 0. The page has no login, anyone on the network can edit.
+
 ## UI theme and fonts (issue #76, style guide version 2)
 
 The theme and fonts compile on a PC against LVGL 8.4 with the project's `lv_conf.h`, but they have not been built with `pio run` or shown on the board. Open checks are tracked in #102.
