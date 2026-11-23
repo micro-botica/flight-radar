@@ -1,18 +1,41 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#if __has_include("secrets.h")
+#include "secrets.h"
+#endif
+
 #include "data/arduino_wifi_driver.h"
 #include "data/profile_store.h"
 #include "data/profile_web.h"
 #include "data/wifi_manager.h"
+#include "setup/setup_portal.h"
 #include "ui/display.h"
 #include "ui/navigation.h"
+#include "ui/setup_screen.h"
 
 static ArduinoWifiDriver wifiDriver;
 static ArduinoWifiClock wifiClock;
 static WifiManager wifi(wifiDriver, wifiClock);
 static ProfileStore profiles;
 static ProfileWeb profileWeb(profiles);
+
+static SetupPortal setupPortal;
+static bool showSetup = false;
+
+// The result of the first-time setup becomes the first location profile.
+// Coordinates stay empty until the postcode lookup exists.
+static void saveSetup(const SetupResult& r) {
+  Profile p;
+  p.name = r.profileName.c_str();
+  p.ssid = r.ssid.c_str();
+  p.password = r.password.c_str();
+  p.postcode = r.postcode.c_str();
+  if (profiles.add(p) < 0) Serial.println("Setup: could not save profile");
+  wifi.setNetworks(profiles.networks());
+  wifi.begin();
+  navShowStatus(false);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -38,15 +61,26 @@ void setup() {
     Serial.printf("Profile: switched to %d (%s), range %u km\n", index,
                   p.name.c_str(), p.rangeKm);
   });
-  wifi.setNetworks(profiles.networks());
+#if !defined(WIFI_SSID)
+  // No profile and no secrets.h fallback: first-time setup via phone.
+  showSetup = profiles.profiles().empty();
+#endif
   profileWeb.onProfilesChanged([]() { wifi.setNetworks(profiles.networks()); });
-  wifi.begin();
+  if (!showSetup) {
+    wifi.setNetworks(profiles.networks());
+    wifi.begin();
+  }
 
   if (!displayInit()) {
     Serial.println("Display init failed");
     return;
   }
   navInit();
+  if (showSetup) {
+    setupPortal.begin(saveSetup);
+    showSetupScreen(navStatusLayer(), setupPortal.apName());
+    navShowStatus(true);
+  }
   lv_timer_handler();  // Draw the first frame before the backlight comes on.
   displaySetBacklight(100);
   Serial.println("Display ready");
@@ -54,6 +88,7 @@ void setup() {
 
 void loop() {
   wifi.update();
+  setupPortal.update();
   // The active profile follows the connected network.
   profiles.onWifiChanged(wifi.isConnected() ? String(wifi.status().ssid.c_str()) : String());
   profileWeb.update(wifi.isConnected());
