@@ -1,6 +1,7 @@
 // Host-side tests for WifiManager using a fake driver and clock.
 #include <stdio.h>
 
+#include "../src/data/geocoder_core.h"
 #include "../src/data/wifi_manager.h"
 #include "../src/setup/portal_core.h"
 #include "../src/setup/portal_pages.h"
@@ -306,7 +307,31 @@ static void testNavigation() {
   CHECK(navPageScreen(7, Screen::List) == Screen::List);
 }
 
+static void testGeocoder() {
+  CHECK(geocoder::requestPath("1012 AB") ==
+        "/bzk/locatieserver/search/v3_1/free?q=postcode:1012AB"
+        "&fq=type:postcode&rows=1&fl=centroide_ll");
+  CHECK(geocoder::requestPath("0123 AB").empty());
+  CHECK(geocoder::requestPath("1234").empty());
+  CHECK(geocoder::requestPath("1234 A1").empty());
+  float lat = 0, lon = 0;
+  const char* ok =
+      "{\"response\":{\"numFound\":1,\"docs\":[{\"centroide_ll\":"
+      "\"POINT(4.89707 52.37403)\"}]}}";
+  CHECK(geocoder::parseResponse(ok, lat, lon) == geocoder::Result::Ok);
+  CHECK(lat > 52.37f && lat < 52.38f);
+  CHECK(lon > 4.89f && lon < 4.90f);
+  CHECK(geocoder::parseResponse("{\"response\":{\"numFound\":0,\"docs\":[]}}",
+                                lat, lon) == geocoder::Result::NotFound);
+  CHECK(geocoder::parseResponse("<html>", lat, lon) == geocoder::Result::BadResponse);
+  CHECK(geocoder::parseResponse("{\"centroide_ll\":\"POINT(x y)\"}", lat, lon) ==
+        geocoder::Result::BadResponse);
+  CHECK(geocoder::parseResponse("{\"centroide_ll\":\"POINT(10 20)\"}", lat, lon) ==
+        geocoder::Result::BadResponse);
+}
+
 int main() {
+  testGeocoder();
   testConnectsToStrongestKnown();
   testWaitsForScan();
   testBackoffDoublesToMax();

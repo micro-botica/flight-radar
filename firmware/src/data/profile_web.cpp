@@ -2,6 +2,8 @@
 
 #include <ESPmDNS.h>
 
+#include "data/geocoder.h"
+
 namespace {
 
 String esc(const String& in) {
@@ -175,6 +177,8 @@ void ProfileWeb::handleEdit() {
   if (code == "postcode") err = "Enter a postcode like 1234 AB.";
   if (code == "range") err = "Choose a range of 20, 40 or 80 km.";
   if (code == "ssid") err = "Wi-Fi name is too long.";
+  if (code == "notfound") err = geocoder::errorText(geocoder::Result::NotFound);
+  if (code == "lookup") err = geocoder::errorText(geocoder::Result::BadResponse);
 
   String body;
   if (err.length()) body += "<div class=\"msg err\">" + esc(err) + "</div>";
@@ -238,8 +242,21 @@ void ProfileWeb::handleSave() {
     return;
   }
 
-  // The postcode to coordinates lookup is a separate feature. Until then a
-  // changed postcode keeps the old coordinates.
+  // Look up the coordinates once and keep them in the profile. Only when the
+  // postcode changed or the profile has no coordinates yet.
+  if (postcode != p.postcode || (p.lat == 0.0f && p.lon == 0.0f)) {
+    float lat = 0.0f, lon = 0.0f;
+    geocoder::Result r = geocodePostcode(postcode, lat, lon);
+    if (r != geocoder::Result::Ok) {
+      server_.sendHeader("Location", String("/edit?") +
+                                         (editing ? "i=" + String(index) + "&" : String()) +
+                                         "e=" + (r == geocoder::Result::NotFound ? "notfound" : "lookup"));
+      server_.send(303);
+      return;
+    }
+    p.lat = lat;
+    p.lon = lon;
+  }
   p.name = name;
   p.postcode = postcode;
   p.rangeKm = (uint8_t)range;
