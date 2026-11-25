@@ -6,6 +6,7 @@
 #endif
 
 #include "data/arduino_wifi_driver.h"
+#include "data/geocoder.h"
 #include "data/profile_store.h"
 #include "data/profile_web.h"
 #include "data/wifi_manager.h"
@@ -24,7 +25,8 @@ static SetupPortal setupPortal;
 static bool showSetup = false;
 
 // The result of the first-time setup becomes the first location profile.
-// Coordinates stay empty until the postcode lookup exists.
+// Coordinates are filled in by resolveCoordinates() once Wi-Fi is up, because
+// the setup portal runs without internet.
 static void saveSetup(const SetupResult& r) {
   Profile p;
   p.name = r.profileName.c_str();
@@ -35,6 +37,29 @@ static void saveSetup(const SetupResult& r) {
   wifi.setNetworks(profiles.networks());
   wifi.begin();
   navShowStatus(false);
+}
+
+// Looks up the coordinates of profiles that have a postcode but no
+// coordinates yet (for example the one from first-time setup). Retries slowly.
+static void resolveCoordinates(bool wifiConnected) {
+  static uint32_t lastTry = 0;
+  if (!wifiConnected || (lastTry != 0 && millis() - lastTry < 30000)) return;
+  for (size_t i = 0; i < profiles.profiles().size(); i++) {
+    Profile p = profiles.profiles()[i];
+    if (p.postcode.length() == 0 || p.lat != 0.0f || p.lon != 0.0f) continue;
+    lastTry = millis();
+    float lat = 0.0f, lon = 0.0f;
+    if (geocodePostcode(p.postcode, lat, lon) == geocoder::Result::Ok) {
+      p.lat = lat;
+      p.lon = lon;
+      profiles.update(i, p);
+      Serial.printf("Profile %u: %s is at %.5f, %.5f\n", (unsigned)i,
+                    p.postcode.c_str(), lat, lon);
+    } else {
+      Serial.printf("Profile %u: postcode lookup failed, will retry\n", (unsigned)i);
+    }
+    return;  // one lookup per call keeps the loop responsive
+  }
 }
 
 void setup() {
@@ -92,6 +117,7 @@ void loop() {
   // The active profile follows the connected network.
   profiles.onWifiChanged(wifi.isConnected() ? String(wifi.status().ssid.c_str()) : String());
   profileWeb.update(wifi.isConnected());
+  resolveCoordinates(wifi.isConnected());
   displayUpdate();
   static uint32_t lastLog = 0;
   if (millis() - lastLog >= 5000) {

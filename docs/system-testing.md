@@ -79,7 +79,24 @@ Not built or run yet: no `pio run` and no board were available. Needs the board,
 | New network | Add a profile with the SSID of another network | Wi-Fi manager knows it without a reboot |
 | Persistence | Reset the board | Profiles are still there |
 
-Known gaps: the postcode is not yet turned into coordinates (issue #70), so a new profile has lat/lon 0. The page has no login, anyone on the network can edit.
+Known gap: the page has no login, anyone on the network can edit.
+
+## Postcode lookup (issue #70)
+
+The request path and the parsing of the PDOK answer are covered by native tests (`geocoder_core.h`). `geocoder.cpp` and its use in `profile_web.cpp` and `main.cpp` were not compiled or run: no `pio` and no board or network were available. Open checks are tracked in the verify issue for #70.
+
+| Check | How | Expected |
+|---|---|---|
+| Build | `cd firmware && pio run` | Build succeeds with `geocoder` (HTTPClient, WiFiClientSecure) |
+| Native tests | `cd firmware && pio run -e native && .pio/build/native/program` | All tests pass, including the geocoder |
+| Lookup on save | Add a profile on the web page with a real postcode, for example `1012 AB` | Profile saves. Serial or later screens show lat about 52.37 and lon about 4.89. |
+| Stored once | Edit the profile without changing the postcode, check the serial log | No new HTTPS request, coordinates stay the same after a reboot |
+| Changed postcode | Change the postcode and save | Coordinates update |
+| Unknown postcode | Save `9999 ZZ` | Form shows "Postcode not found. Check the postcode." and nothing is saved |
+| Invalid postcode | Save `ABCD 12` | Form shows the postcode format error |
+| No internet | Block internet on the router, then save | Form shows "Could not look up the postcode. Try again later." |
+| Setup portal | Finish first-time setup, wait for Wi-Fi | Serial shows `Profile 0: <postcode> is at ...` within 30 s and the coordinates survive a reboot |
+| TLS | Check the request works to `api.pdok.nl` | Works with `setInsecure()`. Decide later whether to pin a certificate. |
 
 ## UI theme and fonts (issue #76, style guide version 2)
 
