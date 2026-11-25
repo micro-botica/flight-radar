@@ -83,7 +83,7 @@ Known gap: the page has no login, anyone on the network can edit.
 
 ## Postcode lookup (issue #70)
 
-The request path and the parsing of the PDOK answer are covered by native tests (`geocoder_core.h`). `geocoder.cpp` and its use in `profile_web.cpp` and `main.cpp` were not compiled or run: no `pio` and no board or network were available. Open checks are tracked in the verify issue for #70.
+The request path and the parsing of the PDOK answer are covered by native tests (`geocoder_core.h`). `geocoder.cpp` and its use in `profile_web.cpp` and `main.cpp` were not compiled or run: no `pio` and no board or network were available. Open checks are tracked in #109.
 
 | Check | How | Expected |
 |---|---|---|
